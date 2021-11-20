@@ -1,0 +1,31 @@
+﻿@model List<WebHookReceiver.Models.GitHubCommit>
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="row">
+    <div class="col-md-12">
+        <h2>Commits Realizados</h2>        
+    </div>
+     <div class="col-md-12">
+         <table class="table">
+  <thead>
+    <tr>
+      <th scope="col">#</th>
+      <th scope="col">Desarrollador</th>
+      <th scope="col">Mensaje</th> 
+    </tr>
+  </thead>
+  <tbody>
+                @foreach (var item in Model)
+                {
+                <tr>
+                    <th scope="row">@item.Id</th>
+                    <td>@item.Developer</td>
+                    <td>@item.Message</td> 
+                </tr>    
+                }
+  </tbody>
+</table>
+    </div>
+</div>

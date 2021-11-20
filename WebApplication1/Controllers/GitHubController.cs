@@ -1,17 +1,24 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebHooks;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
+using System.Threading.Tasks;
+using WebHookReceiver.Models;
+using WebHookReceiver.Services;
 
-namespace DemoWebHooks.Controllers
+namespace WebHookReceiver.Controllers
 {
     public class GitHubController : ControllerBase
     {
         private readonly ILogger<GitHubController> _logger;
+        private readonly IGithubHandler _handler;
 
-        public GitHubController(ILogger<GitHubController> logger)
+        public GitHubController(ILogger<GitHubController> logger,
+            IGithubHandler handler)
         {
             _logger = logger;
+            _handler = handler;
         }
 
         [GitHubWebHook(EventName = "push", Id = "It")]
@@ -37,13 +44,17 @@ namespace DemoWebHooks.Controllers
         }
 
         [GitHubWebHook(EventName = "push")]
-        public IActionResult HandlerForPush(string id, JObject data)
+        public async Task<IActionResult> HandlerForPush(string id, JObject data)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
             _logger.LogInformation("push", id);
+            var model = data.ToObject<Root>();
+
+            _logger.LogInformation($"Push de {model.head_commit.author.name} con el mensaje {model.commits[0].message}");
+            await _handler.SaveCommit(model);
             return Ok();
         }
 
@@ -54,7 +65,7 @@ namespace DemoWebHooks.Controllers
             {
                 return BadRequest(ModelState);
             }
-            _logger.LogInformation("GitHubHandler", id,@event);
+            _logger.LogInformation("GitHubHandler", id, @event);
             return Ok();
         }
 
